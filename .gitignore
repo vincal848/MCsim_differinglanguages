@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Compiled C++ binaries from local `g++ -o mc mc.cpp` runs -- run.py compare
+# compiles into a temp directory instead, but leave room for manual builds.
+mc
+mc.exe
+*.o
+
+# The legacy C++ script's per-path, per-step dump (10000 x 252 rows). The
+# replacement mc.cpp does not write this by default; this is a guard in case
+# someone runs legacy/montecarlocpp.cpp directly.
+payoff_data.csv

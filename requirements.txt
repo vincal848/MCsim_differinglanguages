@@ -1,0 +1,5 @@
+numpy>=1.26
+
+# Only needed for plots.py. Pricing (mc.py, black_scholes.py) and the test suite
+# do not import it.
+matplotlib>=3.8

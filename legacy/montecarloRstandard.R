@@ -1,4 +1,30 @@
-set.seed(123) 
+# SUPERSEDED. Kept for reference only -- this file is not part of the package
+# and is known to be incorrect.
+#
+# Known defects, each with a named regression test:
+#
+# 1. Paths are simulated with real-world drift mu = 0.05 but discounted at the
+#    risk-free rate r = 0.03. That is not risk-neutral pricing. At these
+#    parameters it overprices the K=105 call by about 15% (1.05 vs a
+#    Black-Scholes price of 7.13, tens of standard errors away) -- see
+#    "What was wrong" in README.md for the full comparison. Pinned by
+#    test_mc_price_matches_black_scholes_within_3_se in tests/test_mc.py,
+#    which the replacement passes and this script would not.
+# 2. simulated_paths[1, ] is set to S0 and the loop only fills rows 2:n_steps,
+#    so only n_steps - 1 = 251 steps are actually simulated, while the
+#    discount factor uses exp(-r * n_steps * dt) = exp(-r * T) for the full
+#    year. The number of steps simulated and the horizon discounted over
+#    disagree.
+# 3. Builds a 10000 x 252 = 2,520,000-row payoff_data frame that nothing in
+#    the script reads.
+# 4. Strike prices (95, 105) do not match the C++ version's (105) or the
+#    Python version, which does not price at all -- the three "same model"
+#    scripts price different things.
+#
+# Replaced by mc.R (functions) and run.py / mc.py, the Python driver that also
+# runs this file's replacement and the C++ replacement for comparison.
+
+set.seed(123)
 n_simulations <- 10000
 n_steps <- 252 
 S0 <- 100 
