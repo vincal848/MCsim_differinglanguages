@@ -70,58 +70,6 @@ antithetic pairing only cancels the linear part of the path-to-payoff map.
 1/sqrt(N), which is the only convergence rate Monte Carlo has -- more steps would
 not help, since the log-Euler step is already exact for constant-coefficient GBM.*
 
-## What was wrong
-
-**The paths were not simulated in the risk-neutral measure.** All three scripts
-drew paths with `(mu - 0.5*sigma^2)*dt + sigma*sqrt(dt)*Z` using the real-world
-drift `mu = 0.05`, then discounted the average payoff at `r = 0.03`. Correct
-risk-neutral pricing requires simulating under `r`, not `mu` -- using the real-world
-drift and then discounting at a different rate is neither the real-world price
-(which has no discount rate without a risk premium) nor the risk-neutral price. At
-S0=100, r=0.03, sigma=0.2, T=1, this overprices the K=95/100/105 calls by
-11.8%/13.3%/14.7% (1.44/1.25/1.05 in price terms), 55-62 standard errors from
-Black-Scholes at 500,000 paths -- not something more paths would fix, since it is
-a bias in the mean, not sampling noise. Pinned by
-`test_mc_price_matches_black_scholes_within_3_se` in `tests/test_mc.py` and its R
-and C++ counterparts in `tests/test_cross_language.py`.
-
-**The R script simulated 251 steps while discounting over a full year.**
-`simulated_paths[1, ] <- S0` sets the first row, and the loop `for (i in 2:n_steps)`
-fills the rest -- so only `n_steps - 1 = 251` steps of the Brownian motion are
-actually drawn, while the discount factor `exp(-risk_free_rate * n_steps * dt)`
-still uses the full `n_steps * dt = T = 1` year. The step count driving the
-simulation and the horizon driving the discount factor disagreed by one step out of
-252, a smaller effect than the drift bug but still a real mismatch between what was
-simulated and what was priced. The rebuilt `simulate_terminal` functions in
-`mc.py`/`mc.R`/`mc.cpp` take `n_steps` steps of size `T / n_steps` and discount over
-the same `T`, with no off-by-one gap.
-
-**`std::max` was called without `#include <algorithm>`.** It happened to compile
-because some other header dragged it in transitively on the standard library this
-was built against -- not something to rely on. `mc.cpp` includes `<algorithm>`
-explicitly and is compiled with `-Wall` in CI's cross-language job.
-
-**The R script built an unused 2,520,000-row data frame.** `payoff_data` stacked
-every simulated price and payoff across all 10,000 paths and 252 steps, and nothing
-in the script read it. The C++ script wrote the equivalent as `payoff_data.csv` to
-disk, also unread. Neither survives in the rebuild; `payoff_data.csv` stays in
-`.gitignore` as a guard in case someone runs the legacy C++ file directly.
-
-**The Python script did not price anything, had no functions, and called
-`plt.show()`.** It only plotted paths and a `seaborn` histogram of terminal
-prices, so there was nothing to test and nothing callable from another script.
-`mc.py` and `black_scholes.py` return numbers; `plots.py` is the only file that
-imports `matplotlib`, and `seaborn` is dropped (`plots.terminal_hist` draws the
-exact lognormal density instead of a KDE, which does not need a fitted estimate
-when the true density is known in closed form).
-
-**The three languages priced different things.** R priced strikes {95, 105}, C++
-priced {105} only, and Python did not price at all -- so "the same model in three
-languages" was not actually true even before the drift bug. The rebuild runs the
-same {95, 100, 105} off the same parameters in all three, printed in an identical
-`K call call_se put put_se` table format so `run.py compare` can parse and diff R's
-and C++'s stdout the same way it reads its own.
-
 ## How it works
 
 ```mermaid

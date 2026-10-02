@@ -7,8 +7,7 @@
 //    option is discounted at r = 0.03. Pinned by
 //    test_cpp_implementation_matches_black_scholes_within_3_se in
 //    tests/test_cross_language.py, which the replacement mc.cpp passes and
-//    this file would not -- see "What was wrong" in README.md for the size
-//    of the error (about 15% on the K=105 call at these parameters).
+//    this file would not (about 15% on the K=105 call at these parameters).
 // 2. std::max is called without #include <algorithm>. It happens to compile
 //    here because some other included header drags it in transitively on
 //    most standard library implementations, which is not something to

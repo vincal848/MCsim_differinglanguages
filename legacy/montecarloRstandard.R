@@ -6,8 +6,7 @@
 # 1. Paths are simulated with real-world drift mu = 0.05 but discounted at the
 #    risk-free rate r = 0.03. That is not risk-neutral pricing. At these
 #    parameters it overprices the K=105 call by about 15% (1.05 vs a
-#    Black-Scholes price of 7.13, tens of standard errors away) -- see
-#    "What was wrong" in README.md for the full comparison. Pinned by
+#    Black-Scholes price of 7.13, tens of standard errors away). Pinned by
 #    test_mc_price_matches_black_scholes_within_3_se in tests/test_mc.py,
 #    which the replacement passes and this script would not.
 # 2. simulated_paths[1, ] is set to S0 and the loop only fills rows 2:n_steps,
